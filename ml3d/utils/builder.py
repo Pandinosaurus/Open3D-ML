@@ -6,17 +6,30 @@ PIPELINE = Registry('pipeline')
 SAMPLER = Registry('sampler')
 
 
-def convert_device_name(framework):
+def build(cfg, registry, args=None):
+    return build_from_cfg(cfg, registry, args)
+
+
+def build_network(cfg):
+    return build(cfg, NETWORK)
+
+
+def convert_device_name(device_type, device_ids):
     """Convert device to either cpu or cuda."""
     gpu_names = ["gpu", "cuda"]
     cpu_names = ["cpu"]
-    if framework not in cpu_names + gpu_names:
+    if device_type not in cpu_names + gpu_names:
         raise KeyError("the device should either "
-                       "be cuda or cpu but got {}".format(framework))
-    if framework in gpu_names:
-        return "cuda"
+                       "be cuda or cpu but got {}".format(device_type))
+    assert type(device_ids) is list
+    device_ids_new = []
+    for device in device_ids:
+        device_ids_new.append(int(device))
+
+    if device_type in gpu_names:
+        return "cuda", device_ids_new
     else:
-        return "cpu"
+        return "cpu", device_ids_new
 
 
 def convert_framework_name(framework):

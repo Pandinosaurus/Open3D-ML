@@ -46,7 +46,9 @@ respective requirements files:
 ```bash
 # To install a compatible version of TensorFlow
 pip install -r requirements-tensorflow.txt
-# To install a compatible version of PyTorch with CUDA
+# To install a compatible version of PyTorch
+pip install -r requirements-torch.txt
+# To install a compatible version of PyTorch with CUDA on Linux
 pip install -r requirements-torch-cuda.txt
 ```
 
@@ -137,8 +139,8 @@ pipeline = ml3d.pipelines.SemanticSegmentation(model, dataset=dataset, device="g
 # download the weights.
 ckpt_folder = "./logs/"
 os.makedirs(ckpt_folder, exist_ok=True)
-ckpt_path = ckpt_folder + "randlanet_semantickitti_202009090354utc.pth"
-randlanet_url = "https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202009090354utc.pth"
+ckpt_path = ckpt_folder + "randlanet_semantickitti_202201071330utc.pth"
+randlanet_url = "https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202201071330utc.pth"
 if not os.path.exists(ckpt_path):
     cmd = "wget {} -O {}".format(randlanet_url, ckpt_path)
     os.system(cmd)
@@ -261,7 +263,7 @@ for details.
 
 ### Using predefined scripts
 
-[`scripts/run_pipeline.py`](https://github.com/isl-org/Open3D-ML/tree/master/scripts/run_pipeline.py)
+[`scripts/run_pipeline.py`](https://github.com/isl-org/Open3D-ML/blob/master/scripts/run_pipeline.py)
 provides an easy interface for training and evaluating a model on a dataset. It saves
 the trouble of defining specific model and passing exact configuration.
 
@@ -322,8 +324,8 @@ The table shows the available models and datasets for the segmentation task and 
 
 | Model / Dataset    | SemanticKITTI | Toronto 3D | S3DIS | Semantic3D | Paris-Lille3D | ScanNet |
 |--------------------|---------------|----------- |-------|--------------|-------------|---------|
-| RandLA-Net (tf)    | [53.7](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202010091306.zip) |  [69.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_toronto3d_202010091250.zip) |  [67.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202106011448utc.zip)    | [76.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantic3d_202012120312utc.zip) |  [70.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_parislille3d_202012160654utc.zip) | - |
-| RandLA-Net (torch) | [52.8](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202009090354utc.pth)        |     [71.2](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_toronto3d_202010091306utc.pth)  |  [67.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202010091238.pth)  | [76.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantic3d_202012120312utc.pth) |  [70.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_parislille3d_202012160654utc.pth) | - |
+| RandLA-Net (tf)    | [53.7](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202201071330utc.zip) |  [73.7](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_toronto3d_202201071330utc.zip) |  [70.9](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202201071330utc.zip)    | [76.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantic3d_202201071330utc.zip) |  [70.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_parislille3d_202201071330utc.zip)* | - |
+| RandLA-Net (torch) | [52.8](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantickitti_202201071330utc.pth)        |     [74.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_toronto3d_202201071330utc.pth)  |  [70.9](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_s3dis_202201071330utc.pth)  | [76.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_semantic3d_202201071330utc.pth) |  [70.0](https://storage.googleapis.com/open3d-releases/model-zoo/randlanet_parislille3d_202201071330utc.pth)* | - |
 | KPConv     (tf)    | [58.7](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_semantickitti_202010021102utc.zip)         |     [65.6](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_toronto3d_202012221551utc.zip)  |  [65.0](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_s3dis_202010091238.zip) | - |  [76.7](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_parislille3d_202011241550utc.zip) | - |
 | KPConv     (torch) | [58.0](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_semantickitti_202009090354utc.pth)          |     [65.6](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_toronto3d_202012221551utc.pth) |  [60.0](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_s3dis_202010091238.pth)  | - | [76.7](https://storage.googleapis.com/open3d-releases/model-zoo/kpconv_parislille3d_202011241550utc.pth) | - |
 | SparseConvUnet (torch)| - | - | - | - | - | [68](https://storage.googleapis.com/open3d-releases/model-zoo/sparseconvunet_scannet_202105031316utc.pth) |
@@ -331,23 +333,24 @@ The table shows the available models and datasets for the segmentation task and 
 | PointTransformer (torch)| - | - | [69.2](https://storage.googleapis.com/open3d-releases/model-zoo/pointtransformer_s3dis_202109241350utc.pth) | - | - | - |
 | PointTransformer (tf)| - | - | [69.2](https://storage.googleapis.com/open3d-releases/model-zoo/pointtransformer_s3dis_202109241350utc.zip) | - | - | - |
 
-
-> **_NOTE:_**  RandLA-Net comes with a [Creative Commons BY-NC-SA 4.0](https://github.com/QingyongHu/RandLA-Net/blob/master/LICENSE) license which prohibits commercial use. We are working on a new implementation which will be available under the standard Open3D license (MIT).
+(*) Using weights from original author.
 
 ### Object Detection
 
 For the task of object detection, we measure the performance of different methods using the mean average precision (mAP) for bird's eye view (BEV) and 3D.
 The table shows the available models and datasets for the object detection task and the respective scores. Each score links to the respective weight file.
 For the evaluation, the models were evaluated using the validation subset, according to KITTI's validation criteria. The models were trained for three classes (car, pedestrian and cyclist). The calculated values are the mean value over the mAP of all classes for all difficulty levels.
+For the Waymo dataset, the models were trained on three classes (pedestrian, vehicle, cyclist).
 
 
-| Model / Dataset    | KITTI [BEV / 3D] @ 0.70|
-|--------------------|---------------|
-| PointPillars (tf)    | [61.6 / 55.2](https://storage.googleapis.com/open3d-releases/model-zoo/pointpillars_kitti_202012221652utc.zip) |
-| PointPillars (torch) | [61.2 / 52.8](https://storage.googleapis.com/open3d-releases/model-zoo/pointpillars_kitti_202012221652utc.pth)   |
-| PointRCNN (tf)       | [78.2 / 65.9](https://storage.googleapis.com/open3d-releases/model-zoo/pointrcnn_kitti_202105071146utc.zip) |
-| PointRCNN (torch)    | [78.2 / 65.9](https://storage.googleapis.com/open3d-releases/model-zoo/pointrcnn_kitti_202105071146utc.pth) |
+| Model / Dataset    | KITTI [BEV / 3D] @ 0.70| Waymo (BEV / 3D) @ 0.50 |
+|--------------------|------------------------|------------------|
+| PointPillars (tf)    | [61.6 / 55.2](https://storage.googleapis.com/open3d-releases/model-zoo/pointpillars_kitti_202012221652utc.zip) | - |
+| PointPillars (torch) | [61.2 / 52.8](https://storage.googleapis.com/open3d-releases/model-zoo/pointpillars_kitti_202012221652utc.pth)  | avg: 61.01 / 48.30 \| [best: 61.47	/ 57.55](https://storage.googleapis.com/open3d-releases/model-zoo/pointpillars_waymo_202211200158utc_seed2_gpu16.pth) [^wpp-train] |
+| PointRCNN (tf)       | [78.2 / 65.9](https://storage.googleapis.com/open3d-releases/model-zoo/pointrcnn_kitti_202105071146utc.zip) | - |
+| PointRCNN (torch)    | [78.2 / 65.9](https://storage.googleapis.com/open3d-releases/model-zoo/pointrcnn_kitti_202105071146utc.pth) | - |
 
+[^wpp-train]: The avg. metrics are the average of three sets of training runs with 4, 8, 16 and 32 GPUs. Training was for halted after 30 epochs. Model checkpoint is available for the best training run.
 
 #### Training PointRCNN
 
@@ -383,11 +386,11 @@ The following is a list of datasets for which we provide dataset reader classes.
 * SemanticKITTI ([project page](http://semantic-kitti.org/))
 * Toronto 3D ([github](https://github.com/WeikaiTan/Toronto-3D))
 * Semantic 3D ([project-page](http://www.semantic3d.net/))
-* S3DIS ([project-page](http://3dsemantics.stanford.edu/))
+* S3DIS ([project-page](http://buildingparser.stanford.edu/dataset.html))
 * Paris-Lille 3D ([project-page](https://npm3d.fr/paris-lille-3d))
 * Argoverse ([project-page](https://www.argoverse.org/))
 * KITTI ([project-page](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d))
-* Lyft ([project-page](https://self-driving.lyft.com/level5/data/))
+* Lyft ([project-page](https://level-5.global/data))
 * nuScenes ([project-page](https://www.nuscenes.org/))
 * Waymo ([project-page](https://waymo.com/open/))
 * ScanNet([project-page](http://www.scan-net.org/))
@@ -403,7 +406,9 @@ For downloading these datasets visit the respective webpages and have a look at 
 * [Visualize custom data](docs/howtos.md#visualize-custom-data)
 * [Adding a new model](docs/howtos.md#adding-a-new-model)
 * [Adding a new dataset](docs/howtos.md#adding-a-new-dataset)
+* [Distributed training](docs/howtos.md#distributed-training)
 * [Visualize and compare input data, ground truth and results in TensorBoard](docs/tensorboard.md)
+* [Inference with Intel OpenVINO](docs/openvino.md)
 
 ## Contribute
 There are many ways to contribute to this project. You can:
@@ -425,7 +430,7 @@ Please also check out our communication channels to get in contact with the comm
 
 <!--* [GitHub Issue](https://github.com/isl-org/Open3D/issues): bug reports, feature requests, etc.-->
 * [Forum](https://github.com/isl-org/Open3D/discussions): discussion on the usage of Open3D.
-* [Discord Chat](https://discord.gg/D35BGvn): online chats, discussions,
+* [Discord Chat](https://discord.com/invite/D35BGvn): online chats, discussions,
   and collaboration with other users and developers.
 
 ## Citation

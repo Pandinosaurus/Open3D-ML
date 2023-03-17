@@ -95,7 +95,7 @@ class SemanticSegmentation(BasePipeline):
             scheduler_gamma=0.95,
             momentum=0.98,
             main_log_dir='./logs/',
-            device='gpu',
+            device='cuda',
             split='train',
             train_sum_dir='train_log',
             **kwargs):
@@ -153,7 +153,6 @@ class SemanticSegmentation(BasePipeline):
         model.trans_point_sampler = infer_sampler.get_point_sampler()
         self.curr_cloud_id = -1
         self.test_probs = []
-        self.test_labels = []
         self.ori_test_probs = []
         self.ori_test_labels = []
 
@@ -189,6 +188,7 @@ class SemanticSegmentation(BasePipeline):
         model.device = device
         model.to(device)
         model.eval()
+        self.metric_test = SemSegMetric()
 
         timestamp = datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
 
@@ -218,7 +218,6 @@ class SemanticSegmentation(BasePipeline):
         model.trans_point_sampler = test_sampler.get_point_sampler()
         self.curr_cloud_id = -1
         self.test_probs = []
-        self.test_labels = []
         self.ori_test_probs = []
         self.ori_test_labels = []
 
@@ -238,11 +237,27 @@ class SemanticSegmentation(BasePipeline):
                         'predict_scores': self.ori_test_probs.pop()
                     }
                     attr = self.dataset_split.get_attr(test_sampler.cloud_id)
+                    gt_labels = self.dataset_split.get_data(
+                        test_sampler.cloud_id)['label']
+                    if (gt_labels > 0).any():
+                        valid_scores, valid_labels = filter_valid_label(
+                            torch.tensor(
+                                inference_result['predict_scores']).to(device),
+                            torch.tensor(gt_labels).to(device),
+                            model.cfg.num_classes, model.cfg.ignored_label_inds,
+                            device)
+
+                        self.metric_test.update(valid_scores, valid_labels)
+                        log.info(f"Accuracy : {self.metric_test.acc()}")
+                        log.info(f"IoU : {self.metric_test.iou()}")
                     dataset.save_test_result(inference_result, attr)
                     # Save only for the first batch
                     if 'test' in record_summary and 'test' not in self.summary:
                         self.summary['test'] = self.get_3d_summary(
                             results, inputs['data'], 0, save_gt=False)
+        log.info(
+            f"Overall Testing Accuracy : {self.metric_test.acc()[-1]}, mIoU : {self.metric_test.iou()[-1]}"
+        )
 
         log.info("Finished testing")
 
@@ -260,8 +275,6 @@ class SemanticSegmentation(BasePipeline):
             self.test_probs.append(
                 np.zeros(shape=[num_points, self.model.cfg.num_classes],
                          dtype=np.float16))
-            self.test_labels.append(np.zeros(shape=[num_points],
-                                             dtype=np.int16))
             self.complete_infer = False
 
         this_possiblility = sampler.possibilities[sampler.cloud_id]
@@ -270,10 +283,11 @@ class SemanticSegmentation(BasePipeline):
             self.pbar_update)
         self.pbar_update = this_possiblility[
             this_possiblility > end_threshold].shape[0]
-        self.test_probs[self.curr_cloud_id], self.test_labels[
-            self.curr_cloud_id] = self.model.update_probs(
-                inputs, results, self.test_probs[self.curr_cloud_id],
-                self.test_labels[self.curr_cloud_id])
+        self.test_probs[self.curr_cloud_id] = self.model.update_probs(
+            inputs,
+            results,
+            self.test_probs[self.curr_cloud_id],
+        )
 
         if (split in ['test'] and
                 this_possiblility[this_possiblility > end_threshold].shape[0]
@@ -286,10 +300,12 @@ class SemanticSegmentation(BasePipeline):
             if proj_inds is None:
                 proj_inds = np.arange(
                     self.test_probs[self.curr_cloud_id].shape[0])
+            test_labels = np.argmax(
+                self.test_probs[self.curr_cloud_id][proj_inds], 1)
+
             self.ori_test_probs.append(
                 self.test_probs[self.curr_cloud_id][proj_inds])
-            self.ori_test_labels.append(
-                self.test_labels[self.curr_cloud_id][proj_inds])
+            self.ori_test_labels.append(test_labels)
             self.complete_infer = True
 
     def run_train(self):
@@ -441,7 +457,7 @@ class SemanticSegmentation(BasePipeline):
 
             self.save_logs(writer, epoch)
 
-            if epoch % cfg.save_ckpt_freq == 0:
+            if epoch % cfg.save_ckpt_freq == 0 or epoch == cfg.max_epoch:
                 self.save_ckpt(epoch)
 
     def get_batcher(self, device, split='training'):
